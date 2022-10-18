@@ -15,6 +15,7 @@ func (s *StateDB) RebuildStorageTrieFromKeyValue(leveldbPath_in string, trieRoot
 
 	/* normal trie */
 	if simulatingTrie == normalTrie {
+		
 		// new trie
 		diskdb_out_normal, err := leveldb.New(leveldbPath_out_normal, leveldbCache, leveldbHandles, leveldbNamespace, leveldbReadonly)
 		if err != nil {
@@ -22,20 +23,20 @@ func (s *StateDB) RebuildStorageTrieFromKeyValue(leveldbPath_in string, trieRoot
 			os.Exit(1)
 		}
 		normalTr, _ := trie.New(common.Hash{}, trie.NewDatabase(diskdb_out_normal))
+		
 		// inject the data
 		RebuildNormalTrieStarts := time.Now().UnixNano() / int64(time.Millisecond)
 		TrieUpdateStarts := time.Now().UnixNano() / int64(time.Millisecond)
 		for i, enc := range accounts {
 			data := new(types.StateAccount)
-			addr := common.BytesToAddress(enc) // BytesToAddress() turns last 20 bytes into addr
 
 			if err := rlp.DecodeBytes(enc, data); err != nil {
-				log.Error("Failed to decode state object", "addr", addr, "err", err)
+				log.Error("Failed to decode state object", "err", err)
 			}
 
 			acc, _ := rlp.EncodeToBytes(data)
 			if err := normalTr.TryUpdate(keys[i][:], acc); err != nil {
-				s.setError(fmt.Errorf("updateStateObject (%x) error: %v", addr[:], err))
+				s.setError(fmt.Errorf("updateStateObject (%x) error: %v", err))
 			}
 		}
 		TrieUpdateEnds := time.Now().UnixNano() / int64(time.Millisecond)
