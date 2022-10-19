@@ -73,10 +73,13 @@ func (s *StateDB) RebuildStorageTrieFromKeyValue(leveldbPath_in string, trieRoot
 		}
 		stackTr := trie.NewStackTrie(diskdb_out_stack.NewBatch())
 		
-		// inject the data
+		// inject the data and commit
 		RebuildStackTrieStarts := time.Now().UnixNano() / int64(time.Millisecond)
 		for index, key := range keys {
 			stackTr.TryUpdate(key[:], accounts[index])
+		}
+		if _, err := stackTr.Commit(); err != nil {
+			log.Error("Failed to commit stack slots", "err", err)
 		}
 
 		RebuildStackTrieEnds := time.Now().UnixNano() / int64(time.Millisecond)
